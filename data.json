@@ -1,0 +1,434 @@
+{
+  "users": [
+    {
+      "id": "you",
+      "name": "Ali",
+      "email": "ma7114338@gmail.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBnA1LwLS-6-DZaYewtqh9s95R0dJWkWNMgruMNcrx4jB6-pkpMsI1UYJWYhfvinRHJMUCfO4Fl24jrGntOuDfDrjvQDkrwP6oz_FQv6yV906lQSwfoOsNcJetQNkVWxLBKQkqgmyrYtJlHfAvGkV9Bo6rYhV7H50J2tqMqB7XiQN1Vo4VfPdTd_imMW86UkO9Yk9usuU6tIW6JNAdFi-YtEds0iiFKUONv6PyQciurFCsF-PXCy3JjFiRZpge60FZrL8V2-9OlZQY"
+    },
+    {
+      "id": "sarah",
+      "name": "Sarah Jenkins",
+      "email": "sarah@splitmate.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTZvmtbUorA4vpT5ttCLXi9TCt9EYp02ZArUNhZwrpBD57IsrA4akCHrICpSuAYv04JMCa0jxOiINCNd4UK1kiDhQM9TY74cmDJY-85d3YFaqx83Dq3sA1XFTrhSVAmxJloqitj3_DaxrHi8EPVQ4dpJPUIIJ99kljWa0xtMoNhdas_x8456Seb_41mRxv-cyjlAVHbDhZ4grHQy8wfEn-LYTeOjKHv8oSACKRYY-8Wv51gXhT0GnAaIs2ETEqF4RwK6D4AqScXM"
+    },
+    {
+      "id": "mike",
+      "name": "Mike Chen",
+      "email": "mike@splitmate.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuADIIP6OaGyl92ADQjzptTzZXdfnh53I-CKSu9cDcbYBtj0i5Stn0FYGvUsOks14vut1osiNG-itesA6UrEakt-TnbubdHH2vgUlMqs-NPRBzvNiUvChsp_ApH2eksQSPK3cYGudH-LHfjC28u4OHajNhC4Y2-SZB88ICOBhnK2WOOUEa-BeW3jU037Gdj8ftKB9L2s9vXLab_Y8pAZ_X_LoBlPwbdJE4-0uRgp9kB5LBnzZ4Ohz0Lyfvob336nfsIavTHjRthhLJE"
+    },
+    {
+      "id": "usman",
+      "name": "Usman Ahmed",
+      "email": "usman@splitmate.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuBR7ArrY4lwQ4tmCQPwEynPkTElr9NpXpZ3i-S6d78O6rBH8CU3_q0rjOi4Vrh0k1Oqzo7MvYL6KlG2nS88DBGozJPKv-Z_TVs_duraffOBpnJc2pgzEgg_c_BJItk38OwqUyHyKGjDsyo6G3TuZEihbFKPTVwfdbV6p9CcR9DT-1pGoNSGJwWJVVN5K0Mb_ij1XZVby80tZi2mgTC05PT21Q2KnpZfJfhBO6mIvS0QpLblQS1PxEMPTp2OTPIrXczt_2d-jqG_zgI"
+    },
+    {
+      "id": "ahmed",
+      "name": "Ahmed",
+      "email": "ahmed@splitmate.com",
+      "avatarUrl": "https://lh3.googleusercontent.com/aida-public/AB6AXuDHAz3Ea7qRu2f3VL5fRlUBsnQnoNki3PnmVZqP-P3cPSueJuIiOTSEmcEraN3rjYOIyzXnOx5WeE7Q38XeRvQPz6a5XyQvWf9BmuOiVqb9lCI9iYqcs6wspK9M1sdefxAiiHBawJOM8twCdH-o83CyhhfYGdRUK4X4f36k8N5nPd4VKWbRBewFpYmLJFOqE0FfJszG9b11vGI4JTqzOUjj0Ey7NGFu15O5sFKaBORiq_LgJ6Nqc7cieDBCwNKx0YA1qLcK1YZsSC0"
+    }
+  ],
+  "groups": [
+    {
+      "id": "roommates",
+      "name": "Roommates",
+      "description": "Apartment food, utility bills and rent split",
+      "createdDate": "2026-05-15",
+      "currency": "Rs.",
+      "bgImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuCjze4an5dRuTUSf4agOA_qZ4AT6-KojfnkUADZgQEWhyObcd6gz_SVOSmwH1qS_zm5sAJX32ArjZ0MooqIo49QecyHGD2VciNwTksmOSA2aX_DjuhE5l4YQ1BfLNdBwPDjjGebqY2Ywg43yh0KBk5GsmJS95DbQtAVQvd-CsC4O-rI2pmBrvIGgxnvDQpvTBJj_B97_jRFo5yYIl9X30HxDkwyOXLSfu_nqPAFHv2mn4U__gyRaJvAhbji48MUQNjKtBC03c-XRvQ",
+      "memberIds": [
+        "you",
+        "sarah",
+        "mike",
+        "usman"
+      ],
+      "createdByEmail": "mike@splitmate.com"
+    },
+    {
+      "id": "dubai_trip",
+      "name": "Dubai Trip",
+      "description": "Dubai getaway, beach clubs & taxi bills",
+      "createdDate": "2026-06-12",
+      "currency": "Rs.",
+      "bgImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuCd0jnl2Wof2AUuNET3ez5S_d24F3ur-IPmQ7K0W9tB_VDQXQTqNDxYdW3oSu6Sc7B7iyu0MZwxhHTJFoJbYwoSKxKojFFaMrE4vnQCR_DQ5h0L5K4Zn5oKMt-MSVd3QnKZCm3kY3dF2KcdL-6Ljy9AfAp8gal36omAPLbJpFVduusvWRtDeqJiw2xvGAjlZie7qZOBajH6-amS_eUYOVnhcSXtP57sDIXv9-9Fo3WsUbHOhOFiTekPDCE0Pr91_QvDKXOYfRdcHSs",
+      "memberIds": [
+        "you",
+        "sarah",
+        "mike"
+      ],
+      "createdByEmail": "sarah@splitmate.com"
+    },
+    {
+      "id": "fyp_team",
+      "name": "FYP Team",
+      "description": "Final Year Project printing & prototype costs",
+      "createdDate": "2026-06-10",
+      "currency": "Rs.",
+      "bgImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuCtf3lXPReiBek8D8pn3lDYZG0k3Yw-rqrpGImKHwBh-EPvCxElGw5uO6fPUL3perYP6QiLPWijHElqOJiqF-rmbZzFrGmSy4IEPa4yo8OXxTTTbVUguDheZI2Rv6J4Ur3Hgmw89jMox3A0MHFQ1Cja4xw3o1LRXvyh86fv78LChTX-SbiMfzjFIRyruHnZcfcjD0SJWmCKD7XJw8IOKeCiL4Lo8jGS40x8RTs7IsbRiomzaFristlRd9LBxIQOVCm_pJxoubg7GFI",
+      "memberIds": [
+        "you",
+        "usman"
+      ],
+      "createdByEmail": "ma7114338@gmail.com"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp1",
+      "groupId": "roommates",
+      "amount": 1200,
+      "currency": "$",
+      "description": "Monthly apartment rent block",
+      "category": "Housing",
+      "paidBy": "mike",
+      "date": "2026-06-01",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 300
+        },
+        {
+          "userId": "sarah",
+          "amount": 300
+        },
+        {
+          "userId": "mike",
+          "amount": 300
+        },
+        {
+          "userId": "usman",
+          "amount": 300
+        }
+      ]
+    },
+    {
+      "id": "exp2",
+      "groupId": "roommates",
+      "amount": 40,
+      "currency": "$",
+      "description": "Pizza night roommate gathering",
+      "category": "Food",
+      "paidBy": "sarah",
+      "date": "2026-06-18",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 10
+        },
+        {
+          "userId": "sarah",
+          "amount": 10
+        },
+        {
+          "userId": "mike",
+          "amount": 10
+        },
+        {
+          "userId": "usman",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "exp3",
+      "groupId": "dubai_trip",
+      "amount": 3000,
+      "currency": "$",
+      "description": "Luxury hotel suite & villa booking",
+      "category": "Housing",
+      "paidBy": "you",
+      "date": "2026-06-13",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 1000
+        },
+        {
+          "userId": "sarah",
+          "amount": 1000
+        },
+        {
+          "userId": "mike",
+          "amount": 1000
+        }
+      ]
+    },
+    {
+      "id": "exp4",
+      "groupId": "dubai_trip",
+      "amount": 450,
+      "currency": "$",
+      "description": "Beach club sunset dinners",
+      "category": "Food",
+      "paidBy": "sarah",
+      "date": "2020-06-14",
+      "splitType": "unequal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 150
+        },
+        {
+          "userId": "sarah",
+          "amount": 200
+        },
+        {
+          "userId": "mike",
+          "amount": 100
+        }
+      ]
+    },
+    {
+      "id": "exp_1781927687653",
+      "groupId": "roommates",
+      "amount": 500,
+      "currency": "$",
+      "description": "bhbybb",
+      "category": "Food & Dining",
+      "paidBy": "usman",
+      "date": "2026-06-20",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 125
+        },
+        {
+          "userId": "sarah",
+          "amount": 125
+        },
+        {
+          "userId": "mike",
+          "amount": 125
+        },
+        {
+          "userId": "usman",
+          "amount": 125
+        }
+      ]
+    },
+    {
+      "id": "exp_1781929380579",
+      "groupId": "roommates",
+      "amount": 200,
+      "currency": "$",
+      "description": "19 June 2026",
+      "category": "General",
+      "paidBy": "usman",
+      "date": "2026-06-20",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 50
+        },
+        {
+          "userId": "sarah",
+          "amount": 50
+        },
+        {
+          "userId": "mike",
+          "amount": 50
+        },
+        {
+          "userId": "usman",
+          "amount": 50
+        }
+      ]
+    },
+    {
+      "id": "exp_1781932165569",
+      "groupId": "roommates",
+      "amount": 2,
+      "currency": "$",
+      "description": "test",
+      "category": "Food & Dining",
+      "paidBy": "you",
+      "date": "2026-06-20",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 0.5
+        },
+        {
+          "userId": "sarah",
+          "amount": 0.5
+        },
+        {
+          "userId": "mike",
+          "amount": 0.5
+        },
+        {
+          "userId": "usman",
+          "amount": 0.5
+        }
+      ]
+    },
+    {
+      "id": "exp_1781932167246",
+      "groupId": "roommates",
+      "amount": 2,
+      "currency": "$",
+      "description": "test",
+      "category": "Food & Dining",
+      "paidBy": "you",
+      "date": "2026-06-20",
+      "splitType": "equal",
+      "shares": [
+        {
+          "userId": "you",
+          "amount": 0.5
+        },
+        {
+          "userId": "sarah",
+          "amount": 0.5
+        },
+        {
+          "userId": "mike",
+          "amount": 0.5
+        },
+        {
+          "userId": "usman",
+          "amount": 0.5
+        }
+      ]
+    }
+  ],
+  "settlements": [
+    {
+      "id": "set1",
+      "groupId": "roommates",
+      "fromUserId": "you",
+      "toUserId": "mike",
+      "amount": 189.5,
+      "currency": "$",
+      "date": "2026-06-19",
+      "notes": "Settle rent partially"
+    },
+    {
+      "id": "set_1781927585137",
+      "groupId": "roommates",
+      "fromUserId": "you",
+      "toUserId": "mike",
+      "amount": 120.5,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781927731309",
+      "groupId": "roommates",
+      "fromUserId": "sarah",
+      "toUserId": "mike",
+      "amount": 395,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781927743410",
+      "groupId": "roommates",
+      "fromUserId": "you",
+      "toUserId": "usman",
+      "amount": 65,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781927789214",
+      "groupId": "roommates",
+      "fromUserId": "you",
+      "toUserId": "mike",
+      "amount": 60,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781929643520",
+      "groupId": "roommates",
+      "fromUserId": "you",
+      "toUserId": "usman",
+      "amount": 100,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781930203010",
+      "groupId": "roommates",
+      "fromUserId": "sarah",
+      "toUserId": "usman",
+      "amount": 100,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781930220224",
+      "groupId": "roommates",
+      "fromUserId": "mike",
+      "toUserId": "usman",
+      "amount": 100,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    },
+    {
+      "id": "set_1781931855469",
+      "groupId": "roommates",
+      "fromUserId": "usman",
+      "toUserId": "you",
+      "amount": 50,
+      "currency": "$",
+      "date": "2026-06-20",
+      "notes": "Cleared balance via optimized suggested settlements"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1781931814790",
+      "userId": "you",
+      "groupId": "roommates",
+      "groupName": "Group",
+      "content": "Expense '19 June 2026' of $200 was deleted.",
+      "timestamp": "2026-06-20T05:03:34.790Z",
+      "type": "expense"
+    },
+    {
+      "id": "notif_1781931855469",
+      "userId": "you",
+      "groupId": "roommates",
+      "groupName": "Roommates",
+      "content": "Usman Ahmed settled $50 with Ali",
+      "timestamp": "2026-06-20T05:04:15.469Z",
+      "type": "settlement"
+    },
+    {
+      "id": "notif_1781932165569",
+      "userId": "you",
+      "groupId": "roommates",
+      "groupName": "Roommates",
+      "content": "Ali added a $2 expense for 'test'",
+      "timestamp": "2026-06-20T05:09:25.569Z",
+      "type": "expense"
+    },
+    {
+      "id": "notif_1781932167246",
+      "userId": "you",
+      "groupId": "roommates",
+      "groupName": "Roommates",
+      "content": "Ali added a $2 expense for 'test'",
+      "timestamp": "2026-06-20T05:09:27.246Z",
+      "type": "expense"
+    }
+  ]
+}
