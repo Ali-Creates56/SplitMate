@@ -1,0 +1,6 @@
+{
+  "name": "SplitMate",
+  "description": "Group expense splitting, balance tracking, and debt minimization system with support for unequal splits, percentage splits, multiple currencies (PKR/USD), and settlements.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
