@@ -221,27 +221,31 @@ export default function GroupDetails({
   return (
     <div className="space-y-6 pb-12">
       {/* Cover Header */}
-      <div className="relative w-full h-48 sm:h-56 rounded-3xl overflow-hidden shadow-sm bg-white/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 flex items-end">
+      {/* Cover Header */}
+      <div className="relative w-full min-h-[12rem] sm:min-h-[14rem] rounded-3xl overflow-hidden shadow-sm bg-white/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 flex flex-col justify-between p-4 sm:p-6">
         
-        {/* Back navigation */}
-        <button
-          onClick={onBack}
-          className="absolute top-4 left-4 p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full transition-colors backdrop-blur-md">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        {/* Delete group option - Author only */}
-        {group.createdByEmail === currentUser?.email &&
-        <button
-          type="button"
-          onClick={() => setShowDeleteGroupConfirm(true)}
-          className="absolute top-4 right-4 p-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full transition-all backdrop-blur-md cursor-pointer border border-red-200 dark:border-red-500/20"
-          title={`Delete '${group.name}' completely (Creator only)`}>
-            <Trash2 className="w-5 h-5" />
+        {/* Top Actions Row */}
+        <div className="flex justify-between items-start w-full">
+          {/* Back navigation */}
+          <button
+            onClick={onBack}
+            className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full transition-colors backdrop-blur-md shrink-0">
+            <ArrowLeft className="w-5 h-5" />
           </button>
-        }
 
-        <div className="w-full p-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mt-12">
+          {/* Delete group option - Author only */}
+          {group.createdByEmail === currentUser?.email &&
+          <button
+            type="button"
+            onClick={() => setShowDeleteGroupConfirm(true)}
+            className="p-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full transition-all backdrop-blur-md cursor-pointer border border-red-200 dark:border-red-500/20 shrink-0"
+            title={`Delete '${group.name}' completely (Creator only)`}>
+              <Trash2 className="w-5 h-5" />
+            </button>
+          }
+        </div>
+
+        <div className="w-full flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mt-4">
           <div>
             <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded leading-none">
               Group Active
