@@ -187,15 +187,15 @@ export default function Dashboard({
                   Delete ({selectedIds.length})
                 </button>
               )}
-              <button
-                onClick={() => {
-                  setIsSelectionMode(!isSelectionMode);
-                  setSelectedIds([]);
-                }}
-                className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              >
-                {isSelectionMode ? "Cancel" : "Select"}
-              </button>
+                <button
+                  onClick={() => {
+                    setIsSelectionMode(!isSelectionMode);
+                    setSelectedIds([]);
+                  }}
+                  className="text-xs font-bold text-white bg-sky-500 px-3 py-1.5 rounded-lg hover:bg-sky-600 transition-colors"
+                >
+                  {isSelectionMode ? "Cancel" : "Select"}
+                </button>
             </div>
           )}
         </div>
@@ -245,13 +245,22 @@ export default function Dashboard({
                           </p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0 ml-2">
+                      <div className="text-right shrink-0 ml-2 flex flex-col items-end">
                         <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
                           {formatCurrency(conv(act.payload.amount), currency)}
                         </p>
-                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 truncate max-w-[60px] block">
+                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 truncate max-w-[80px] block text-right">
                           {act.groupName}
                         </span>
+                        {!isSelectionMode && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setActivityToDelete(act); }}
+                            className="mt-1.5 p-1 px-2.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 text-[10px] font-bold"
+                            title="Delete Activity">
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -271,40 +280,50 @@ export default function Dashboard({
                           </p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0 ml-2">
+                      <div className="text-right shrink-0 ml-2 flex flex-col items-end">
                         <p className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                           {formatCurrency(conv(act.payload.amount), currency)}
                         </p>
-                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 truncate max-w-[60px] block">
+                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 truncate max-w-[80px] block text-right">
                           {act.groupName}
                         </span>
+                        {!isSelectionMode && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setActivityToDelete(act); }}
+                            className="mt-1.5 p-1 px-2.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 text-[10px] font-bold"
+                            title="Delete Activity">
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center gap-3 min-w-0">
-                    <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-700 dark:text-slate-300 shrink-0">
-                      {getCategoryIcon(act.content)}
+                  <div className="flex-1 flex justify-between items-center min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-700 dark:text-slate-300 shrink-0">
+                        {getCategoryIcon(act.content)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-slate-800 dark:text-slate-100 leading-tight truncate">
+                          {act.content}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1 truncate">
+                          {act.groupName} • {new Date(act.timestamp).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm text-slate-800 dark:text-slate-100 leading-tight truncate">
-                        {act.content}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1 truncate">
-                        {act.groupName} • {new Date(act.timestamp).toLocaleDateString()}
-                      </p>
-                    </div>
+                    {!isSelectionMode && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setActivityToDelete(act); }}
+                        className="shrink-0 ml-3 p-1 px-2.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/20 text-[10px] font-bold"
+                        title="Delete Activity">
+                        Delete
+                      </button>
+                    )}
                   </div>
-                )}
-                
-                {!isSelectionMode && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); setActivityToDelete(act); }}
-                    className="absolute right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                    title="Delete Activity">
-                    <X className="w-4 h-4" />
-                  </button>
                 )}
               </div>
               );
