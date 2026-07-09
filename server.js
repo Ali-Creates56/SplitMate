@@ -70,13 +70,13 @@ const sendProfessionalEmail = async (to, subject, otp, message) => {
 };
 
 // Net Balance Calculator (Async Database Query)
-async function calculateGroupBalances(groupId) {
-  const group = await Group.findOne({ id: groupId });
+async function calculateGroupBalances(groupId, preFetchedGroup, preFetchedExpenses, preFetchedSettlements) {
+  const group = preFetchedGroup || await Group.findOne({ id: groupId });
   if (!group) return {};
   const balances = {};
   group.memberIds.forEach((id) => balances[id] = 0);
   
-  const groupExpenses = await Expense.find({ groupId });
+  const groupExpenses = preFetchedExpenses || await Expense.find({ groupId });
   groupExpenses.forEach((exp) => {
     const payer = exp.paidBy;
     if (balances[payer] !== undefined) balances[payer] += exp.amount;
@@ -93,7 +93,7 @@ async function calculateGroupBalances(groupId) {
     });
   });
 
-  const groupSettlements = await Settlement.find({ groupId });
+  const groupSettlements = preFetchedSettlements || await Settlement.find({ groupId });
   groupSettlements.forEach((set) => {
     if (balances[set.fromUserId] !== undefined) balances[set.fromUserId] += set.amount;
     if (balances[set.toUserId] !== undefined) balances[set.toUserId] -= set.amount;
@@ -101,8 +101,8 @@ async function calculateGroupBalances(groupId) {
   return balances;
 }
 
-async function getSuggestedGroupSettlements(groupId) {
-  const balances = await calculateGroupBalances(groupId);
+async function getSuggestedGroupSettlements(groupId, preFetchedGroup, preFetchedExpenses, preFetchedSettlements) {
+  const balances = await calculateGroupBalances(groupId, preFetchedGroup, preFetchedExpenses, preFetchedSettlements);
   const creditors = [];
   const debtors = [];
   Object.entries(balances).forEach(([userId, bal]) => {
@@ -304,7 +304,7 @@ app.get("/api/groups", async (req, res) => {
   const formattedGroups = await Promise.all(userGroups.map(async (g) => {
     const groupExpenses = await Expense.find({ groupId: g.id });
     const totalSpend = groupExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const balances = await calculateGroupBalances(g.id);
+    const balances = await calculateGroupBalances(g.id, g, groupExpenses, null);
     const userBalance = balances["you"] || 0;
     const members = allUsers.filter((u) => g.memberIds.includes(u.id));
     return { ...g.toObject(), totalSpend, userBalance, members };
@@ -329,8 +329,8 @@ app.get("/api/groups/:id", async (req, res) => {
   const users = await User.find({});
 
   const totalSpend = groupExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const balances = await calculateGroupBalances(id);
-  const suggestedSettlements = await getSuggestedGroupSettlements(id);
+  const balances = await calculateGroupBalances(id, group, groupExpenses, groupSettlements);
+  const suggestedSettlements = await getSuggestedGroupSettlements(id, group, groupExpenses, groupSettlements);
 
   const hydratedBalances = Object.entries(balances).map(([userId, bal]) => {
     const user = users.find((u) => u.id === userId);
@@ -420,7 +420,7 @@ app.delete("/api/groups/:id", async (req, res) => {
   }
 
   // VALIDATION: Check if payments are balanced
-  const balances = await calculateGroupBalances(id);
+  const balances = await calculateGroupBalances(id, group, null, null);
   const unbalanced = Object.values(balances).some(bal => Math.abs(bal) > 0.01);
   if (unbalanced) {
     return res.status(400).json({ error: "Cannot delete group. All member balances must be zero (fully settled) first." });
@@ -622,7 +622,7 @@ app.delete("/api/contacts/:id", async (req, res) => {
   const groupsWithUser = await Group.find({ memberIds: id });
   let hasBalance = false;
   for (const group of groupsWithUser) {
-    const balances = await calculateGroupBalances(group.id);
+    const balances = await calculateGroupBalances(group.id, group, null, null);
     const userBal = balances[id] || 0;
     if (Math.abs(userBal) > 0.01) {
       hasBalance = true;
@@ -664,7 +664,7 @@ app.get("/api/stats", async (req, res) => {
   let owerSum = 0, oweeSum = 0, totalExpensesCount = 0;
 
   for (const g of userGroups) {
-    const balances = await calculateGroupBalances(g.id);
+    const balances = await calculateGroupBalances(g.id, g, null, null);
     const userBal = balances["you"] || 0;
     if (userBal > 0) owerSum += userBal;
     else oweeSum += Math.abs(userBal);

@@ -37,7 +37,7 @@ const GroupSchema = new mongoose.Schema({
 
 const ExpenseSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  groupId: { type: String, required: true },
+  groupId: { type: String, required: true, index: true },
   amount: { type: Number, required: true },
   currency: { type: String, default: "Rs." },
   description: { type: String },
@@ -54,7 +54,7 @@ const ExpenseSchema = new mongoose.Schema({
 
 const SettlementSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
-  groupId: { type: String, required: true },
+  groupId: { type: String, required: true, index: true },
   fromUserId: { type: String, required: true },
   toUserId: { type: String, required: true },
   amount: { type: Number, required: true },
@@ -66,7 +66,7 @@ const SettlementSchema = new mongoose.Schema({
 const NotificationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   userId: { type: String },
-  groupId: { type: String },
+  groupId: { type: String, index: true },
   groupName: { type: String },
   content: { type: String },
   timestamp: { type: String },
