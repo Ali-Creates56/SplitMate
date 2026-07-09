@@ -69,28 +69,14 @@ const sendProfessionalEmail = async (to, subject, otp, message) => {
   });
 };
 
-// Helper: load all state for calculations
-async function loadState() {
-  const [users, groups, expenses, settlements, notifications] = await Promise.all([
-    User.find({}), Group.find({}), Expense.find({}), Settlement.find({}), Notification.find({})
-  ]);
-  return {
-    users: users.map(d => d.toObject()),
-    groups: groups.map(d => d.toObject()),
-    expenses: expenses.map(d => d.toObject()),
-    settlements: settlements.map(d => d.toObject()),
-    notifications: notifications.map(d => d.toObject())
-  };
-}
-
-// Net Balance Calculator
-function calculateNetBalances(groupId, state) {
-  const group = state.groups.find((g) => g.id === groupId);
+// Net Balance Calculator (Async Database Query)
+async function calculateGroupBalances(groupId) {
+  const group = await Group.findOne({ id: groupId });
   if (!group) return {};
   const balances = {};
   group.memberIds.forEach((id) => balances[id] = 0);
   
-  const groupExpenses = state.expenses.filter((e) => e.groupId === groupId);
+  const groupExpenses = await Expense.find({ groupId });
   groupExpenses.forEach((exp) => {
     const payer = exp.paidBy;
     if (balances[payer] !== undefined) balances[payer] += exp.amount;
@@ -107,7 +93,7 @@ function calculateNetBalances(groupId, state) {
     });
   });
 
-  const groupSettlements = state.settlements.filter((s) => s.groupId === groupId);
+  const groupSettlements = await Settlement.find({ groupId });
   groupSettlements.forEach((set) => {
     if (balances[set.fromUserId] !== undefined) balances[set.fromUserId] += set.amount;
     if (balances[set.toUserId] !== undefined) balances[set.toUserId] -= set.amount;
@@ -115,8 +101,8 @@ function calculateNetBalances(groupId, state) {
   return balances;
 }
 
-function getSuggestedSettlements(groupId, state) {
-  const balances = calculateNetBalances(groupId, state);
+async function getSuggestedGroupSettlements(groupId) {
+  const balances = await calculateGroupBalances(groupId);
   const creditors = [];
   const debtors = [];
   Object.entries(balances).forEach(([userId, bal]) => {
@@ -312,50 +298,58 @@ app.get("/api/admin/stats", async (req, res) => {
 // --- CORE API ENDPOINTS ---
 
 app.get("/api/groups", async (req, res) => {
-  const state = await loadState();
-  const userGroups = state.groups.filter((g) => g.memberIds.includes("you"));
+  const userGroups = await Group.find({ memberIds: "you" });
+  const allUsers = await User.find({});
 
-  const formattedGroups = userGroups.map((g) => {
-    const groupExpenses = state.expenses.filter((e) => e.groupId === g.id);
+  const formattedGroups = await Promise.all(userGroups.map(async (g) => {
+    const groupExpenses = await Expense.find({ groupId: g.id });
     const totalSpend = groupExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const balances = calculateNetBalances(g.id, state);
+    const balances = await calculateGroupBalances(g.id);
     const userBalance = balances["you"] || 0;
-    const members = state.users.filter((u) => g.memberIds.includes(u.id));
-    return { ...g, totalSpend, userBalance, members };
-  });
+    const members = allUsers.filter((u) => g.memberIds.includes(u.id));
+    return { ...g.toObject(), totalSpend, userBalance, members };
+  }));
   res.json(formattedGroups);
 });
 
 app.get("/api/groups/:id", async (req, res) => {
   const { id } = req.params;
-  const state = await loadState();
-  const group = state.groups.find((g) => g.id === id);
+  const group = await Group.findOne({ id });
   if (!group) return res.status(404).json({ error: "Group not found" });
 
-  const groupExpenses = state.expenses.filter((e) => e.groupId === id);
-  const groupSettlements = state.settlements.filter((s) => s.groupId === id);
+  const [groupExpenses, groupSettlements, allUsers] = await Promise.all([
+    Expense.find({ groupId: id }),
+    Settlement.find({ groupId: id }),
+    User.find({ id: { $in: group.memberIds } }) // Optimization: Only load members
+  ]);
+  
+  // Need users who paid for expenses or made settlements even if they left the group?
+  // Let's just load all users for the hydration since it's a small collection usually, 
+  // but to be safe, let's load all users.
+  const users = await User.find({});
+
   const totalSpend = groupExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const balances = calculateNetBalances(id, state);
-  const suggestedSettlements = getSuggestedSettlements(id, state);
+  const balances = await calculateGroupBalances(id);
+  const suggestedSettlements = await getSuggestedGroupSettlements(id);
 
   const hydratedBalances = Object.entries(balances).map(([userId, bal]) => {
-    const user = state.users.find((u) => u.id === userId);
+    const user = users.find((u) => u.id === userId);
     return { userId, name: user ? user.name : userId, avatarUrl: user ? user.avatarUrl : "", balance: bal };
   });
 
   const hydratedExpenses = groupExpenses.map((exp) => {
-    const payer = state.users.find((u) => u.id === exp.paidBy);
-    return { ...exp, payerName: payer ? payer.name : exp.paidBy, payerAvatar: payer ? payer.avatarUrl : "" };
+    const payer = users.find((u) => u.id === exp.paidBy);
+    return { ...exp.toObject(), payerName: payer ? payer.name : exp.paidBy, payerAvatar: payer ? payer.avatarUrl : "" };
   });
 
   const hydratedSettlements = groupSettlements.map((set) => {
-    const fromUser = state.users.find((u) => u.id === set.fromUserId);
-    const toUser = state.users.find((u) => u.id === set.toUserId);
-    return { ...set, fromName: fromUser ? fromUser.name : set.fromUserId, toName: toUser ? toUser.name : set.toUserId };
+    const fromUser = users.find((u) => u.id === set.fromUserId);
+    const toUser = users.find((u) => u.id === set.toUserId);
+    return { ...set.toObject(), fromName: fromUser ? fromUser.name : set.fromUserId, toName: toUser ? toUser.name : set.toUserId };
   });
 
-  const members = state.users.filter((u) => group.memberIds.includes(u.id));
-  res.json({ group, totalSpend, expenses: hydratedExpenses, settlements: hydratedSettlements, balances: hydratedBalances, suggestedSettlements, members });
+  const members = users.filter((u) => group.memberIds.includes(u.id));
+  res.json({ group: group.toObject(), totalSpend, expenses: hydratedExpenses, settlements: hydratedSettlements, balances: hydratedBalances, suggestedSettlements, members });
 });
 
 app.post("/api/groups", async (req, res) => {
@@ -415,11 +409,10 @@ app.post("/api/groups/:id/members", async (req, res) => {
 
 app.delete("/api/groups/:id", async (req, res) => {
   const { id } = req.params;
-  const state = await loadState();
-  const group = state.groups.find((g) => g.id === id);
+  const group = await Group.findOne({ id });
   if (!group) return res.status(404).json({ error: "Group not found" });
 
-  const currentUser = state.users.find((u) => u.id === "you");
+  const currentUser = await User.findOne({ id: "you" });
   if (!currentUser) return res.status(401).json({ error: "Unauthorized" });
 
   if (group.createdByEmail !== currentUser.email) {
@@ -427,7 +420,7 @@ app.delete("/api/groups/:id", async (req, res) => {
   }
 
   // VALIDATION: Check if payments are balanced
-  const balances = calculateNetBalances(id, state);
+  const balances = await calculateGroupBalances(id);
   const unbalanced = Object.values(balances).some(bal => Math.abs(bal) > 0.01);
   if (unbalanced) {
     return res.status(400).json({ error: "Cannot delete group. All member balances must be zero (fully settled) first." });
@@ -591,8 +584,7 @@ app.post("/api/settlements", async (req, res) => {
   });
   await notif.save();
 
-  const state = await loadState();
-  const remainingSuggestions = getSuggestedSettlements(groupId, state);
+  const remainingSuggestions = await getSuggestedGroupSettlements(groupId);
   if (remainingSuggestions.length === 0) {
     await Expense.deleteMany({ groupId });
     const cleanNotif = new Notification({
@@ -627,16 +619,14 @@ app.delete("/api/contacts/:id", async (req, res) => {
   const { id } = req.params;
   if (id === "you") return res.status(400).json({ error: "Cannot delete the profile owner" });
 
-  const state = await loadState();
+  const groupsWithUser = await Group.find({ memberIds: id });
   let hasBalance = false;
-  for (const group of state.groups) {
-    if (group.memberIds.includes(id)) {
-      const balances = calculateNetBalances(group.id, state);
-      const userBal = balances[id] || 0;
-      if (Math.abs(userBal) > 0.01) {
-        hasBalance = true;
-        break;
-      }
+  for (const group of groupsWithUser) {
+    const balances = await calculateGroupBalances(group.id);
+    const userBal = balances[id] || 0;
+    if (Math.abs(userBal) > 0.01) {
+      hasBalance = true;
+      break;
     }
   }
 
@@ -645,10 +635,8 @@ app.delete("/api/contacts/:id", async (req, res) => {
   }
 
   await User.deleteOne({ id });
-  for (const group of state.groups) {
-    if (group.memberIds.includes(id)) {
-      await Group.findOneAndUpdate({ id: group.id }, { $pull: { memberIds: id } });
-    }
+  for (const group of groupsWithUser) {
+    await Group.findOneAndUpdate({ id: group.id }, { $pull: { memberIds: id } });
   }
   res.json({ success: true });
 });
@@ -672,17 +660,16 @@ app.post("/api/notifications/bulk-delete", async (req, res) => {
 });
 
 app.get("/api/stats", async (req, res) => {
-  const state = await loadState();
-  const userGroups = state.groups.filter((g) => g.memberIds.includes("you"));
+  const userGroups = await Group.find({ memberIds: "you" });
   let owerSum = 0, oweeSum = 0, totalExpensesCount = 0;
 
-  userGroups.forEach((g) => {
-    const balances = calculateNetBalances(g.id, state);
+  for (const g of userGroups) {
+    const balances = await calculateGroupBalances(g.id);
     const userBal = balances["you"] || 0;
     if (userBal > 0) owerSum += userBal;
     else oweeSum += Math.abs(userBal);
-    totalExpensesCount += state.expenses.filter((e) => e.groupId === g.id).length;
-  });
+    totalExpensesCount += await Expense.countDocuments({ groupId: g.id });
+  }
 
   res.json({
     totalGroups: userGroups.length,
