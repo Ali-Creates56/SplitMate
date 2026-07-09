@@ -17,7 +17,7 @@ const connectDB = async () => {
 const UserSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true }, // custom id to match frontend
   name: { type: String, required: true },
-  email: { type: String },
+  email: { type: String, unique: true, sparse: true },
   password: { type: String }, // Hashed password
   avatarUrl: { type: String },
   isContact: { type: Boolean, default: false },

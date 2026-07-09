@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, ArrowRight, HelpCircle } from "lucide-react";
 
 
@@ -25,7 +25,13 @@ export default function Onboarding({ onComplete }) {
     image: "/sync_cloud_banner.webp"
   }];
 
-
+  // Preload images into browser memory instantly
+  useEffect(() => {
+    steps.forEach((s) => {
+      const img = new Image();
+      img.src = s.image;
+    });
+  }, []);
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
       {/* Background blobs */}
