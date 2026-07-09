@@ -4,13 +4,19 @@ import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected || mongoose.connection.readyState === 1) {
+    return;
+  }
+  
   try {
-    await mongoose.connect(process.env.MONGODB_URI, { family: 4 });
+    const db = await mongoose.connect(process.env.MONGODB_URI, { family: 4, serverSelectionTimeoutMS: 5000 });
+    isConnected = db.connections[0].readyState === 1;
     console.log('MongoDB Connected successfully!');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
   }
 };
 

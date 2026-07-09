@@ -10,7 +10,6 @@ import bcrypt from "bcryptjs";
 import { connectDB, User, Group, Expense, Settlement, Notification } from "./db.js";
 
 dotenv.config();
-connectDB(); // Connect to MongoDB
 
 const app = express();
 const PORT = 3000;
@@ -19,6 +18,12 @@ app.use(cors({ origin: "*" })); // Allow Capacitor mobile clients to connect
 app.use(helmet());
 app.use(mongoSanitize());
 app.use(express.json({ limit: "50mb" }));
+
+// Serverless DB Connection Middleware
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
 
 // Memory store for OTPs
 const otps = {};
