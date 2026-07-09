@@ -34,13 +34,13 @@ export default function App() {
   const [predefinedUsers, setPredefinedUsers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [stats, setStats] = useState({
-    totalGroups: 0,
+  const stats = {
+    totalGroups: groups.length,
     totalExpenses: 0,
-    amountOwed: 0,
-    amountYouOwe: 0,
-    netBalance: 0
-  });
+    amountOwed: groups.reduce((sum, g) => sum + (g.userBalance > 0 ? g.userBalance : 0), 0),
+    amountYouOwe: groups.reduce((sum, g) => sum + (g.userBalance < 0 ? Math.abs(g.userBalance) : 0), 0),
+    netBalance: groups.reduce((sum, g) => sum + (g.userBalance || 0), 0)
+  };
   const [activities, setActivities] = useState([]);
   const [currency, setCurrency] = useState("Rs.");
   const [darkMode, setDarkMode] = useState(false);
@@ -58,7 +58,6 @@ export default function App() {
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
   const [newGroupCurrency, setNewGroupCurrency] = useState("Rs.");
-  const [newGroupBg, setNewGroupBg] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
 
   // Profile Edit Form
@@ -99,13 +98,23 @@ export default function App() {
     }
   }, [currentUser, activeTab]);
 
-  const refreshData = async () => {
-    setIsLoading(true);
+  // Background Cache Sync when internet is restored
+  useEffect(() => {
+    const handleOnline = () => {
+      if (currentUser) {
+        refreshData(true); // pass true for silent background refresh
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [currentUser]);
+
+  const refreshData = async (silent = false) => {
+    if (!silent) setIsLoading(true);
 
     try {
       const fetchPromise = Promise.all([
         fetch("/api/groups"),
-        fetch("/api/stats"),
         fetch("/api/notifications")
       ]);
 
@@ -122,13 +131,11 @@ export default function App() {
           let hasCache = false;
           try {
             const cachedGroups = localStorage.getItem("sm_groups");
-            const cachedStats = localStorage.getItem("sm_stats");
             const cachedAct = localStorage.getItem("sm_act");
             if (cachedGroups) {
               setGroups(JSON.parse(cachedGroups));
               hasCache = true;
             }
-            if (cachedStats) setStats(JSON.parse(cachedStats));
             if (cachedAct) setActivities(JSON.parse(cachedAct));
           } catch (err) {}
           
@@ -143,17 +150,12 @@ export default function App() {
         }
       }
 
-      const [resGroups, resStats, resAct] = results;
+      const [resGroups, resAct] = results;
 
       if (resGroups && resGroups.ok) {
         const data = await resGroups.json();
         setGroups(data);
         localStorage.setItem("sm_groups", JSON.stringify(data));
-      }
-      if (resStats && resStats.ok) {
-        const data = await resStats.json();
-        setStats(data);
-        localStorage.setItem("sm_stats", JSON.stringify(data));
       }
       if (resAct && resAct.ok) {
         const data = await resAct.json();
@@ -266,7 +268,6 @@ export default function App() {
           name: newGroupName,
           description: newGroupDesc,
           currency: newGroupCurrency,
-          bgImage: newGroupBg || undefined,
           memberIds: selectedMembers
         })
       });
@@ -274,7 +275,6 @@ export default function App() {
       if (res.ok) {
         setNewGroupName("");
         setNewGroupDesc("");
-        setNewGroupBg("");
         setSelectedMembers([]);
         setShowCreateGroup(false);
         refreshData();
@@ -800,39 +800,6 @@ export default function App() {
               
               </div>
 
-              <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Group Cover Picture</label>
-                  <div className="flex flex-col gap-1.5 mt-1">
-                    <input
-                    type="file"
-                    accept="image/*"
-                    id="group-cover-upload"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setNewGroupBg(reader.result);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="hidden" />
-                  
-                    <label
-                    htmlFor="group-cover-upload"
-                    className="cursor-pointer inline-flex items-center justify-center gap-2 px-3 py-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350 text-center text-xs font-bold rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 transition-all active:scale-95">
-                      <ImagePlus className="w-5 h-5 text-emerald-500" />
-                      <span>Upload Picture</span>
-                    </label>
-                    {newGroupBg &&
-                  <div className="w-full h-24 rounded-xl overflow-hidden border-2 border-emerald-500 bg-slate-100 text-center flex items-center justify-center mt-2">
-                        <img src={newGroupBg} alt="Preview" className="w-full h-full object-cover font-sans" />
-                      </div>
-                  }
-                  </div>
-              </div>
-
               {/* Members selection list */}
               <div className="space-y-1.5 pt-2">
                 <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Add Group Members</label>
@@ -867,7 +834,6 @@ export default function App() {
                   setShowCreateGroup(false);
                   setNewGroupName("");
                   setNewGroupDesc("");
-                  setNewGroupBg(null);
                   setSelectedMembers([]);
                 }}
                 className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/90 dark:hover:bg-slate-700/90 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold rounded-xl text-xs transition-colors">

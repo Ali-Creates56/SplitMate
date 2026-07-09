@@ -4,18 +4,27 @@ import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
-let isConnected = false;
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 const connectDB = async () => {
-  if (isConnected || mongoose.connection.readyState === 1) {
-    return;
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, { family: 4, serverSelectionTimeoutMS: 5000 }).then((mongoose) => {
+      console.log('MongoDB Connected successfully!');
+      return mongoose;
+    });
   }
   
   try {
-    const db = await mongoose.connect(process.env.MONGODB_URI, { family: 4, serverSelectionTimeoutMS: 5000 });
-    isConnected = db.connections[0].readyState === 1;
-    console.log('MongoDB Connected successfully!');
+    cached.conn = await cached.promise;
+    return cached.conn;
   } catch (error) {
+    cached.promise = null;
     console.error('MongoDB connection error:', error);
   }
 };
@@ -36,7 +45,6 @@ const GroupSchema = new mongoose.Schema({
   description: { type: String },
   createdDate: { type: String },
   currency: { type: String, default: "Rs." },
-  bgImage: { type: String },
   memberIds: [{ type: String }],
   createdByEmail: { type: String }
 });

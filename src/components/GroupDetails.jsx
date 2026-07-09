@@ -131,13 +131,28 @@ export default function GroupDetails({
 
   // Delete Expense handler
   const handleDeleteExpense = async (expId) => {
+    const expObj = data?.expenses?.find(e => e.id === expId);
+    
+    // Optimistic UI Update
+    setData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        expenses: prev.expenses.filter(e => e.id !== expId),
+        totalSpend: prev.totalSpend - (expObj ? expObj.amount : 0)
+      };
+    });
+
     try {
       const res = await fetch(`/api/expenses/${expId}`, { method: "DELETE" });
       if (res.ok) {
-        fetchGroupDetails();
+        fetchGroupDetails(); // silently resyncs exact balances
+      } else {
+        fetchGroupDetails(); // revert on error
       }
     } catch (err) {
       console.error(err);
+      fetchGroupDetails(); // revert on error
     }
   };
 
@@ -205,21 +220,13 @@ export default function GroupDetails({
   };
   return (
     <div className="space-y-6 pb-12">
-      {/* Cover Backdrop Trip Photo Image with Sunset reflection */}
-      <div className="relative w-full h-56 sm:h-72 rounded-3xl overflow-hidden shadow-md">
-        <img
-          src={`/api/groups/${group.id}/image`}
-          alt={group.name}
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer" />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+      {/* Cover Header */}
+      <div className="relative w-full h-48 sm:h-56 rounded-3xl overflow-hidden shadow-sm bg-white/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 flex items-end">
         
         {/* Back navigation */}
         <button
           onClick={onBack}
-          className="absolute top-4 left-4 p-2.5 bg-black/30 hover:bg-black/50 text-white rounded-full transition-colors backdrop-blur-md">
-          
+          className="absolute top-4 left-4 p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full transition-colors backdrop-blur-md">
           <ArrowLeft className="w-5 h-5" />
         </button>
 
@@ -228,40 +235,38 @@ export default function GroupDetails({
         <button
           type="button"
           onClick={() => setShowDeleteGroupConfirm(true)}
-          className="absolute top-4 right-4 p-2.5 bg-red-600/30 hover:bg-red-600/80 text-white rounded-full transition-all backdrop-blur-md cursor-pointer border border-red-500/10"
+          className="absolute top-4 right-4 p-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full transition-all backdrop-blur-md cursor-pointer border border-red-200 dark:border-red-500/20"
           title={`Delete '${group.name}' completely (Creator only)`}>
-          
-            <Trash2 className="w-5 h-5 text-red-200" />
+            <Trash2 className="w-5 h-5" />
           </button>
         }
 
-        <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
+        <div className="w-full p-6 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mt-12">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/80 text-white px-2 py-0.5 rounded leading-none">
+            <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded leading-none">
               Group Active
             </span>
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-white mt-1 drop-shadow-md">
+            <h1 className="font-display font-bold text-2xl sm:text-3xl text-slate-850 dark:text-slate-100 mt-2">
               {group.name}
             </h1>
-            <p className="text-xs text-slate-200 opacity-90 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Created • {group.createdDate}
             </p>
           </div>
 
           {/* Member avatars horizontal list */}
-          <div className="flex -space-x-3 bg-white/10 p-1.5 rounded-full backdrop-blur-md border border-white/10">
+          <div className="flex -space-x-3 bg-white/50 dark:bg-slate-800/50 p-1.5 rounded-full backdrop-blur-md border border-slate-200 dark:border-slate-700">
             {members.slice(0, 5).map((m) =>
             <img
               key={m.id}
               src={m.avatarUrl}
               alt={m.name}
               title={m.name}
-              className="w-8 h-8 rounded-full object-cover border-2 border-slate-900"
+              className="w-8 h-8 rounded-full object-cover border-2 border-white dark:border-slate-900"
               referrerPolicy="no-referrer" />
-
             )}
             {members.length > 5 &&
-            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold font-mono">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold font-mono border-2 border-white dark:border-slate-900">
                 +{members.length - 5}
               </div>
             }

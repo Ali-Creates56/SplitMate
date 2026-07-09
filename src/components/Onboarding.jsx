@@ -56,13 +56,16 @@ export default function Onboarding({ onComplete }) {
 
         {/* Dynamic Step Content */}
         <div className="flex flex-col items-center text-center">
-          <div className="w-full h-52 rounded-2xl overflow-hidden shadow-md mb-6 bg-slate-100 dark:bg-slate-800">
-            <img
-              src={steps[step].image}
-              alt={steps[step].title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer" />
-            
+          <div className="w-full h-52 rounded-2xl overflow-hidden shadow-md mb-6 bg-slate-100 dark:bg-slate-800 relative">
+            {steps.map((s, idx) => (
+              <img
+                key={idx}
+                src={s.image}
+                alt={s.title}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === step ? 'opacity-100' : 'opacity-0'}`}
+                referrerPolicy="no-referrer"
+              />
+            ))}
           </div>
           
           <h2 className="font-display font-bold text-2xl text-slate-850 dark:text-slate-100 mb-2 leading-tight">

@@ -15,7 +15,9 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors({ origin: "*" })); // Allow Capacitor mobile clients to connect
-app.use(helmet());
+if (process.env.NODE_ENV === "production") {
+  app.use(helmet());
+}
 app.use(mongoSanitize());
 app.use(express.json({ limit: "50mb" }));
 
@@ -305,7 +307,7 @@ app.get("/api/admin/stats", async (req, res) => {
 app.get("/api/groups", async (req, res) => {
   console.time('api_groups');
   console.time('groups_query');
-  const userGroups = await Group.find({ memberIds: "you" }).select("-bgImage");
+  const userGroups = await Group.find({ memberIds: "you" });
   console.timeEnd('groups_query');
 
   console.time('users_query');
@@ -327,7 +329,7 @@ app.get("/api/groups", async (req, res) => {
 
 app.get("/api/groups/:id", async (req, res) => {
   const { id } = req.params;
-  const group = await Group.findOne({ id }).select("-bgImage");
+  const group = await Group.findOne({ id });
   if (!group) return res.status(404).json({ error: "Group not found" });
 
   const [groupExpenses, groupSettlements, allUsers] = await Promise.all([
@@ -366,7 +368,7 @@ app.get("/api/groups/:id", async (req, res) => {
 });
 
 app.post("/api/groups", async (req, res) => {
-  const { name, description, currency, memberIds, bgImage } = req.body;
+  const { name, description, currency, memberIds } = req.body;
   const currentUser = await User.findOne({ id: "you" });
 
   const freshGroup = new Group({
@@ -375,7 +377,6 @@ app.post("/api/groups", async (req, res) => {
     description: description || "Direct expense calculations",
     createdDate: new Date().toISOString().split('T')[0],
     currency: currency || "Rs.",
-    bgImage: bgImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuCjze4an5dRuTUSf4agOA_qZ4AT6-KojfnkUADZgQEWhyObcd6gz_SVOSmwH1qS_zm5sAJX32ArjZ0MooqIo49QecyHGD2VciNwTksmOSA2aX_DjuhE5l4YQ1BfLNdBwPDjjGebqY2Ywg43yh0KBk5GsmJS95DbQtAVQvd-CsC4O-rI2pmBrvIGgxnvDQpvTBJj_B97_jRFo5yYIl9X30HxDkwyOXLSfu_nqPAFHv2mn4U__gyRaJvAhbji48MUQNjKtBC03c-XRvQ",
     memberIds: Array.from(new Set(["you", ...(memberIds || [])])),
     createdByEmail: currentUser ? currentUser.email : "ma7114338@gmail.com"
   });
@@ -672,26 +673,7 @@ app.post("/api/notifications/bulk-delete", async (req, res) => {
   res.json({ success: true });
 });
 
-app.get("/api/stats", async (req, res) => {
-  const userGroups = await Group.find({ memberIds: "you" });
-  let owerSum = 0, oweeSum = 0, totalExpensesCount = 0;
 
-  for (const g of userGroups) {
-    const balances = await calculateGroupBalances(g.id, g, null, null);
-    const userBal = balances["you"] || 0;
-    if (userBal > 0) owerSum += userBal;
-    else oweeSum += Math.abs(userBal);
-    totalExpensesCount += await Expense.countDocuments({ groupId: g.id });
-  }
-
-  res.json({
-    totalGroups: userGroups.length,
-    totalExpenses: totalExpensesCount,
-    amountOwed: owerSum,
-    amountYouOwe: oweeSum,
-    netBalance: owerSum - oweeSum
-  });
-});
 
 
 async function start() {
@@ -699,8 +681,20 @@ async function start() {
 
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: "custom" });
     app.use(vite.middlewares);
+
+    app.get("*", async (req, res, next) => {
+      try {
+        const url = req.originalUrl;
+        let template = fs.readFileSync(path.resolve("index.html"), "utf-8");
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
