@@ -208,7 +208,7 @@ export default function GroupDetails({
       {/* Cover Backdrop Trip Photo Image with Sunset reflection */}
       <div className="relative w-full h-56 sm:h-72 rounded-3xl overflow-hidden shadow-md">
         <img
-          src={group.bgImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuCjze4an5dRuTUSf4agOA_qZ4AT6-KojfnkUADZgQEWhyObcd6gz_SVOSmwH1qS_zm5sAJX32ArjZ0MooqIo49QecyHGD2VciNwTksmOSA2aX_DjuhE5l4YQ1BfLNdBwPDjjGebqY2Ywg43yh0KBk5GsmJS95DbQtAVQvd-CsC4O-rI2pmBrvIGgxnvDQpvTBJj_B97_jRFo5yYIl9X30HxDkwyOXLSfu_nqPAFHv2mn4U__gyRaJvAhbji48MUQNjKtBC03c-XRvQ"}
+          src={`/api/groups/${group.id}/image`}
           alt={group.name}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer" />

@@ -303,8 +303,14 @@ app.get("/api/admin/stats", async (req, res) => {
 // --- CORE API ENDPOINTS ---
 
 app.get("/api/groups", async (req, res) => {
-  const userGroups = await Group.find({ memberIds: "you" });
+  console.time('api_groups');
+  console.time('groups_query');
+  const userGroups = await Group.find({ memberIds: "you" }).select("-bgImage");
+  console.timeEnd('groups_query');
+
+  console.time('users_query');
   const allUsers = await User.find({});
+  console.timeEnd('users_query');
 
   const formattedGroups = await Promise.all(userGroups.map(async (g) => {
     const groupExpenses = await Expense.find({ groupId: g.id });
@@ -314,12 +320,14 @@ app.get("/api/groups", async (req, res) => {
     const members = allUsers.filter((u) => g.memberIds.includes(u.id));
     return { ...g.toObject(), totalSpend, userBalance, members };
   }));
+  
+  console.timeEnd('api_groups');
   res.json(formattedGroups);
 });
 
 app.get("/api/groups/:id", async (req, res) => {
   const { id } = req.params;
-  const group = await Group.findOne({ id });
+  const group = await Group.findOne({ id }).select("-bgImage");
   if (!group) return res.status(404).json({ error: "Group not found" });
 
   const [groupExpenses, groupSettlements, allUsers] = await Promise.all([
