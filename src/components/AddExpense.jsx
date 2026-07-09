@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import { Sparkles, HelpCircle, Check, DollarSign, SplitSquareVertical, Receipt, X } from "lucide-react";
 import { formatCurrency } from "../utils";
+import { useHardwareBack } from "../hooks/useHardwareBack";
 
 
 
@@ -33,6 +34,9 @@ export default function AddExpense({
   const [customCategories, setCustomCategories] = useState([]);
   const [showNewCategoryPrompt, setShowNewCategoryPrompt] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+
+  // Hardware Back Button Interception
+  useHardwareBack(showNewCategoryPrompt, () => setShowNewCategoryPrompt(false));
 
   const activeGroup = groups.find((g) => g.id === selectedGroupId);
   const members = activeGroup?.members || [];

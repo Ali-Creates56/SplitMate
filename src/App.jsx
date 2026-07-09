@@ -9,6 +9,7 @@ import GroupDetails from "./components/GroupDetails";
 import AddExpense from "./components/AddExpense";
 import Analytics from "./components/Analytics";
 import AdminDashboard from "./components/AdminDashboard";
+import { useHardwareBack } from "./hooks/useHardwareBack";
 import {
   Sparkles,
   Home as HomeIcon,
@@ -97,6 +98,13 @@ export default function App() {
       refreshData();
     }
   }, [currentUser, activeTab]);
+
+  // Hardware Back Button Interception
+  useHardwareBack(activeTab !== "home" && !selectedGroup && !showAddExpense && !showCreateGroup && !showAnalytics, () => setActiveTab("home"));
+  useHardwareBack(!!selectedGroup, () => setSelectedGroup(null));
+  useHardwareBack(showAddExpense, () => setShowAddExpense(false));
+  useHardwareBack(showCreateGroup, () => setShowCreateGroup(false));
+  useHardwareBack(showAnalytics, () => setShowAnalytics(false));
 
   // Background Cache Sync when internet is restored
   useEffect(() => {

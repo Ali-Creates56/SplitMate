@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Sparkles, User, Mail, Lock, Key } from "lucide-react";
+import { useHardwareBack } from "../hooks/useHardwareBack";
 
 export default function Login({ onLogin, onRegister, isCheckingAuth }) {
   const [mode, setMode] = useState("login"); // 'login', 'register', 'forgot'
@@ -13,6 +14,10 @@ export default function Login({ onLogin, onRegister, isCheckingAuth }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [simulated, setSimulated] = useState(false);
+
+  // Hardware Back Button Interception
+  useHardwareBack(step === "otp", () => setStep("initial"));
+  useHardwareBack(step === "initial" && mode !== "login", () => setMode("login"));
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();

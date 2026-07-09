@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Skeleton, SkeletonCard, SkeletonList } from "./Skeleton";
+import { useHardwareBack } from "../hooks/useHardwareBack";
 
 import {
   ArrowLeft,
@@ -52,6 +53,17 @@ export default function GroupDetails({
   const [expenseIdToDelete, setExpenseIdToDelete] = useState(null);
   const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  // Hardware Back Button Interception for Modals
+  useHardwareBack(inviteModal, () => setInviteModal(false));
+  useHardwareBack(showDeleteGroupConfirm, () => setShowDeleteGroupConfirm(false));
+  useHardwareBack(!!expenseIdToSettleConfirm, () => {
+    setExpenseIdToSettleConfirm(null);
+    setSettleMemberId(null);
+  });
+  useHardwareBack(!!expenseIdToDelete, () => setExpenseIdToDelete(null));
+  useHardwareBack(!!selectedExpenseForSettlement, () => setSelectedExpenseForSettlement(null));
+  useHardwareBack(!!deleteError, () => setDeleteError(""));
 
   const fetchGroupDetails = async () => {
     setLoading(true);

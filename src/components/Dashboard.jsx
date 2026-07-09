@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Skeleton, SkeletonCircle, SkeletonCard, SkeletonList } from "./Skeleton";
+import { useHardwareBack } from "../hooks/useHardwareBack";
 
 import {
   TrendingUp,
@@ -65,6 +66,15 @@ export default function Dashboard({
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+  // Hardware Back Button Interception
+  useHardwareBack(!!activityToDelete, () => setActivityToDelete(null));
+  useHardwareBack(showLogoutConfirm, () => setShowLogoutConfirm(false));
+  useHardwareBack(showBulkDeleteConfirm, () => setShowBulkDeleteConfirm(false));
+  useHardwareBack(isSelectionMode, () => {
+    setIsSelectionMode(false);
+    setSelectedIds([]);
+  });
 
   // Since currency is strictly PKR now, no conversion is necessary.
   const conv = (amt) => {
