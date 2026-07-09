@@ -4,6 +4,7 @@ SplitMate is a modern, full-stack, **Offline-First** mobile and web application 
 
 ## Features
 - **True Offline Capability:** Fully functional without an internet connection! The app caches your data and seamlessly syncs to the backend when you regain connectivity.
+- **Native Android Flow:** Seamless Android integration using Capacitor, featuring a global hardware back-button handler that intelligently navigates nested modals and pop-ups exactly like a native app.
 - **Group Management:** Create groups, set unique currencies, and invite friends.
 - **Expense Timeline:** Log exact expenses tied directly to specific group members.
 - **Dynamic Split Engine:** Automatically distribute and calculate equal bill distribution among selected members.
@@ -69,6 +70,7 @@ SplitMate uses Capacitor to wrap the web experience into a native Android app.
    npx cap open android
    ```
    *In Android Studio: Click Build > Build Bundle(s) / APK(s) > Build APK(s).*
+   *(Alternatively, use gradle: `.\gradlew.bat assembleDebug` inside the `android/` directory)*
 
 ## Vercel Deployment
 
