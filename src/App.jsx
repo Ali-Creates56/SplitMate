@@ -370,6 +370,21 @@ export default function App() {
     }
   };
 
+  const handleBulkDeleteActivities = async (ids) => {
+    try {
+      const res = await fetch("/api/notifications/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids })
+      });
+      if (res.ok) {
+        refreshData();
+      }
+    } catch (err) {
+      console.error("Failed to bulk delete activities", err);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     const confirmDelete = window.confirm("Are you sure you want to request account deletion? You will have 10 days to reactivate it before it's permanently deleted.");
     if (!confirmDelete) return;
@@ -489,7 +504,8 @@ export default function App() {
             onViewReportsClick={() => setShowAnalytics(true)}
             currency={currency}
             onLogout={handleLogout}
-            onDeleteActivity={handleDeleteActivity} />
+            onDeleteActivity={handleDeleteActivity}
+            onBulkDeleteActivities={handleBulkDeleteActivities} />
 
           }
 

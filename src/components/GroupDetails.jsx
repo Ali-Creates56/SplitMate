@@ -279,10 +279,10 @@ export default function GroupDetails({
         </div>
 
         <div className="bg-[#000000] p-5 rounded-2xl border border-slate-800 text-white">
-          <p className="text-xs font-semibold uppercase tracking-wider opacity-85 text-slate-300">
-            To Receive
+          <p className={`text-xs font-semibold uppercase tracking-wider opacity-85 ${userBalance < -0.01 ? "text-red-400" : "text-slate-300"}`}>
+            {userBalance < -0.01 ? "To Pay" : "To Receive"}
           </p>
-          <p className="font-semibold text-xl mt-1 font-mono text-[#ffffff]">
+          <p className={`font-semibold text-xl mt-1 font-mono ${userBalance < -0.01 ? "text-red-400" : "text-[#ffffff]"}`}>
             {formatCurrency(Math.abs(conv(userBalance)), currency)}
           </p>
         </div>

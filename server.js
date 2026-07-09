@@ -97,6 +97,13 @@ function calculateNetBalances(groupId, state) {
     exp.shares.forEach((share) => {
       const debtor = share.userId;
       if (balances[debtor] !== undefined) balances[debtor] -= share.amount;
+      
+      // Feature: If the debtor has marked their share as settled for this specific expense
+      // we act as if a settlement of 'share.amount' happened from debtor to payer.
+      if (exp.settledMembers && exp.settledMembers.includes(debtor)) {
+        if (balances[debtor] !== undefined) balances[debtor] += share.amount; // debtor's balance is restored
+        if (balances[payer] !== undefined) balances[payer] -= share.amount;   // payer's expected receive is reduced
+      }
     });
   });
 
@@ -493,7 +500,11 @@ app.post("/api/expenses", async (req, res) => {
     groupName: group.name,
     content: `${payer ? payer.name : "Someone"} added a ${finalExpense.currency}${finalExpense.amount} expense for '${finalExpense.description}'`,
     timestamp: new Date().toISOString(),
-    type: "expense"
+    type: "expense",
+    payload: {
+      ...finalExpense.toObject(),
+      payerName: payer ? payer.name : "Someone"
+    }
   });
   await notif.save();
   res.json({ success: true, expense: finalExpense.toObject() });
@@ -571,7 +582,12 @@ app.post("/api/settlements", async (req, res) => {
     groupName: group.name,
     content: `${sender ? sender.name : "A user"} settled ${freshSettlement.currency}${freshSettlement.amount} with ${receiver ? receiver.name : "receiver"}`,
     timestamp: new Date().toISOString(),
-    type: "settlement"
+    type: "settlement",
+    payload: {
+      ...freshSettlement.toObject(),
+      fromName: sender ? sender.name : "A user",
+      toName: receiver ? receiver.name : "receiver"
+    }
   });
   await notif.save();
 
@@ -645,6 +661,13 @@ app.get("/api/notifications", async (req, res) => {
 app.delete("/api/notifications/:id", async (req, res) => {
   const { id } = req.params;
   await Notification.deleteOne({ id });
+  res.json({ success: true });
+});
+
+app.post("/api/notifications/bulk-delete", async (req, res) => {
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: "Invalid IDs" });
+  await Notification.deleteMany({ id: { $in: ids } });
   res.json({ success: true });
 });
 

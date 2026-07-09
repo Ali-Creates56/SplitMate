@@ -70,7 +70,8 @@ const NotificationSchema = new mongoose.Schema({
   groupName: { type: String },
   content: { type: String },
   timestamp: { type: String },
-  type: { type: String }
+  type: { type: String },
+  payload: { type: Object }
 });
 
 export const User = mongoose.model('User', UserSchema);
