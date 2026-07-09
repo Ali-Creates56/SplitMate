@@ -10,19 +10,19 @@ export default function Onboarding({ onComplete }) {
 
   const steps = [
   {
+    title: "Work Seamlessly Offline",
+    desc: "No internet? No problem! Your data is securely cached on your device. View your balances and log new expenses from anywhere, anytime.",
+    image: "/work_offline_banner.webp"
+  },
+  {
     title: "Split Expenses Effortlessly",
     desc: "Split bills, groceries, and travel expenses directly with your flatmates or travel companions. Equal, unequal, or percentage splits are supported.",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCxClTOeuN85fpDZYze4OBvdocHLLqTiNP6JuH66u50j1-bxun9Krw6Gu1fznR0-tgzhs9Yzj3SzUBCvOqWYsl01habV9_3qZNe6AacEnvfHRtozFAGDOKfjxidkUZQKvpiS7t_0llwqTrrVM4813VnsQZd6plUtSWg-4vJOZgVldI6u2rgc_h9I42duvwCRtAVXhLz6rjEc2pQtQ7MxmmOXhXECWwNQT2fBKNryIk7eq5TWwgMTPJr1-PGtGJ8dNPkFKj6T5Vegq4"
+    image: "/split_expenses_banner.webp"
   },
   {
-    title: "Automatic Balance Tracking",
-    desc: "No more messy spreadsheets. SplitMate's real-time engine keeps track of exact individual balances, credits, and debits automatically.",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCkIpYBsLuPqgc-ywhBeRepTi_CauU-oBuEI6z-0xS5eeYky1iZOa8cHK4Dzl-ik1vm2ieEGOZnNp0CJ2WOIwUstcNbYV92_zOS-Y7brIp13dR556X2AZCapV8K6gLd5P9aoqyqLf8gpERMoAeCPJKkOSAufJWf9y9QHJgRRzF5CXQ89qM60LJLDDl77368uQmOZBgnKsM1PYqAd95Bwb2-s8vWwYVlJvxWjyac4ohgoyZUCs3QODcDmmfhfJslEEPlX7G3FfWpB7g"
-  },
-  {
-    title: "Settle Debts Intelligently",
-    desc: "Get suggested payments optimized to minimize transaction complexity. Settle up and clear your balances instantly with a single click.",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCtf3lXPReiBek8D8pn3lDYZG0k3Yw-rqrpGImKHwBh-EPvCxElGw5uO6fPUL3perYP6QiLPWijHElqOJiqF-rmbZzFrGmSy4IEPa4yo8OXxTTTbVUguDheZI2Rv6J4Ur3Hgmw89jMox3A0MHFQ1Cja4xw3o1LRXvyh86fv78LChTX-SbiMfzjFIRyruHnZcfcjD0SJWmCKD7XJw8IOKeCiL4Lo8jGS40x8RTs7IsbRiomzaFristlRd9LBxIQOVCm_pJxoubg7GFI"
+    title: "Secure & Always Synced",
+    desc: "Your data is automatically synced to the cloud securely whenever you regain connection. Settle up and clear your balances instantly.",
+    image: "/sync_cloud_banner.webp"
   }];
 
 

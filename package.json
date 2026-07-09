@@ -7,16 +7,24 @@
     "dev": "node server.js",
     "build": "vite build",
     "start": "node server.js",
-    "clean": "rm -rf dist data.json"
+    "clean": "rm -rf dist data.json",
+    "cap:sync": "vite build && npx cap sync",
+    "cap:build": "vite build && npx cap copy && npx cap open android"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^8.6.0",
-    "@google/genai": "^2.4.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/splash-screen": "^8.0.1",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "helmet": "^8.2.0",
+    "localforage": "^1.10.0",
     "lucide-react": "^0.546.0",
     "mongoose": "^9.7.4",
     "motion": "^12.23.24",
@@ -26,8 +34,10 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.14",
     "vite": "^6.2.3"
   }

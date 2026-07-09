@@ -1,4 +1,5 @@
 import React from "react";
+import { SkeletonCard } from "./Skeleton";
 
 import { Plus, Home, Plane, School, Compass, FolderOpen, ArrowRight } from "lucide-react";
 import { formatCurrency } from "../utils";
@@ -14,7 +15,8 @@ export default function GroupsList({
   groups,
   onGroupSelect,
   onCreateGroupClick,
-  currency
+  currency,
+  isLoading
 }) {
 
   // Since currency is strictly PKR now, no conversion is necessary.
@@ -53,7 +55,13 @@ export default function GroupsList({
         </button>
       </div>
 
-      {groups.length === 0 ?
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <SkeletonCard className="h-48" />
+          <SkeletonCard className="h-48" />
+          <SkeletonCard className="h-48" />
+        </div>
+      ) : groups.length === 0 ? (
       <div className="text-center py-16 bg-white/40 dark:bg-slate-900/20 border border-slate-100 dark:border-slate-800/50 rounded-2xl flex flex-col justify-center items-center">
           <FolderOpen className="w-12 h-12 text-slate-350 dark:text-slate-700 mb-3" />
           <p className="font-semibold text-slate-800 dark:text-slate-200">No Groups Found</p>
@@ -64,8 +72,8 @@ export default function GroupsList({
           
             Create Group
           </button>
-        </div> :
-
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {groups.map((group) => {
           const hasOwed = group.userBalance > 0.01;
@@ -146,7 +154,7 @@ export default function GroupsList({
 
         })}
         </div>
-      }
+      )}
     </div>);
 
 }

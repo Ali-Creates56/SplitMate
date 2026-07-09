@@ -2,7 +2,9 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import cors from "cors";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
@@ -13,30 +15,60 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 const PORT = 3000;
+
+app.use(cors({ origin: "*" })); // Allow Capacitor mobile clients to connect
+app.use(helmet());
+app.use(mongoSanitize());
 app.use(express.json({ limit: "50mb" }));
 
 // Memory store for OTPs
 const otps = {};
 
-// Initialize Gemini Client Lazily & Safely
-let ai = null;
-function getGeminiClient() {
-  if (!ai) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey !== "MY_GEMINI_API_KEY") {
-      ai = new GoogleGenAI({
-        apiKey,
-        httpOptions: { headers: { "User-Agent": "aistudio-build" } }
-      });
-    }
-  }
-  return ai;
-}
+// Gemini Client removed
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: { user: process.env.SMTP_EMAIL || "", pass: process.env.SMTP_PASSWORD || "" }
 });
+
+const sendProfessionalEmail = async (to, subject, otp, message) => {
+  const htmlTemplate = `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px; border-radius: 16px;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <img src="cid:splitmate_logo" alt="SplitMate Logo" style="width: 80px; height: 80px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);" />
+    <h1 style="color: #0f172a; margin-top: 16px; font-size: 24px; font-weight: 700;">SplitMate</h1>
+  </div>
+  
+  <div style="background-color: #ffffff; padding: 32px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); text-align: center;">
+    <h2 style="color: #334155; font-size: 20px; margin-bottom: 16px;">${subject}</h2>
+    <p style="color: #64748b; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">${message}</p>
+    
+    <div style="background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 20px; margin: 24px 0;">
+      <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #10b981;">${otp}</span>
+    </div>
+    
+    <p style="color: #94a3b8; font-size: 14px;">This code will expire in 10 minutes. Please do not share it with anyone.</p>
+  </div>
+  
+  <div style="text-align: center; margin-top: 32px; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+    <p>© ${new Date().getFullYear()} SplitMate Inc. All rights reserved.</p>
+    <p>This is an automated message, please do not reply to this email.</p>
+  </div>
+</div>`;
+
+  await transporter.sendMail({
+    from: '"SplitMate Support" <noreply@splitmate.com>',
+    replyTo: "noreply@splitmate.com",
+    to,
+    subject,
+    html: htmlTemplate,
+    attachments: [{
+      filename: 'favicon.png',
+      path: path.join(process.cwd(), 'public', 'favicon.png'),
+      cid: 'splitmate_logo'
+    }]
+  });
+};
 
 // Helper: load all state for calculations
 async function loadState() {
@@ -112,8 +144,11 @@ function getSuggestedSettlements(groupId, state) {
 // API ENDPOINTS
 
 app.get("/api/currentUser", async (req, res) => {
-  const user = await User.findOne({ id: "you" });
-  res.json(user || null);
+  const userId = req.query.id;
+  if (!userId) return res.status(401).json({ error: "Not logged in" });
+  const user = await User.findOne({ id: userId });
+  if (!user) return res.status(401).json({ error: "Not logged in" });
+  res.json(user);
 });
 
 app.post("/api/profile/update", async (req, res) => {
@@ -153,12 +188,12 @@ app.post("/api/auth/register-request", async (req, res) => {
   otps[email.toLowerCase()] = { otp, name, password }; // temporarily store password
   
   if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
-    await transporter.sendMail({
-      from: `"SplitMate" <${process.env.SMTP_EMAIL}>`,
-      to: email,
-      subject: "SplitMate Registration OTP",
-      html: `<h3>Welcome to SplitMate!</h3><p>Your registration OTP is: <strong>${otp}</strong></p>`
-    });
+    await sendProfessionalEmail(
+      email, 
+      "Secure Registration OTP", 
+      otp, 
+      "Welcome to SplitMate! To complete your secure account registration, please use the following One-Time Password."
+    );
   } else {
     console.log(`[SIMULATED EMAIL] To: ${email} | OTP: ${otp}`);
   }
@@ -184,7 +219,7 @@ app.post("/api/auth/register-verify", async (req, res) => {
     name: session.name,
     email: target,
     password: hashedPassword,
-    avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDThjmqH6fm5-FAys1g4tycG4MH6zoNkwX0W-tfGgJfbGAVFyybt5P6IGpMgXoZlhEgM8DNGFzTI89pPT3xkphC8gW9SAtvijZGLG2MLVAGeb63BFPDzHUXFehWxOdoNVQev6n-4xHO2PgM10ckZDOo9aWW-WVFHAVQz18uqPf5SOIa7C6dN98D8l2gVu6DGg4s24mfkPKujevAfER9KUCccVe80vNPQiVVnx38k_MrubwRwnBzP2t_umhnUqQBM8PJES09Xj79pac"
+    avatarUrl: "/default_avatar.webp"
   });
   await newUser.save();
   delete otps[target];
@@ -200,10 +235,11 @@ app.post("/api/auth/login", async (req, res) => {
   }
 
   const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user || !user.password) return res.status(400).json({ error: "Invalid email or password" });
+  if (!user) return res.status(400).json({ error: "User not registered. Please register to login." });
+  if (!user.password) return res.status(400).json({ error: "Invalid Username or Password" });
   
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
+  if (!isMatch) return res.status(400).json({ error: "Invalid Username or Password" });
 
   // Soft Deletion Check (10-day cooldown)
   if (user.deletionRequestedAt) {
@@ -230,12 +266,12 @@ app.post("/api/auth/forgot-password-request", async (req, res) => {
   otps[email.toLowerCase()] = { otp, reset: true };
 
   if (process.env.SMTP_EMAIL) {
-    await transporter.sendMail({
-      from: `"SplitMate" <${process.env.SMTP_EMAIL}>`,
-      to: email,
-      subject: "SplitMate Password Reset",
-      html: `<p>Your password reset OTP is: <strong>${otp}</strong></p>`
-    });
+    await sendProfessionalEmail(
+      email, 
+      "Password Reset Request", 
+      otp, 
+      "We received a request to reset the password for your SplitMate account. Please use the following One-Time Password to proceed."
+    );
   } else {
     console.log(`[SIMULATED EMAIL] To: ${email} | RESET OTP: ${otp}`);
   }
@@ -565,7 +601,7 @@ app.post("/api/contacts", async (req, res) => {
     id: name.toLowerCase().replace(/\s+/g, "_") + "_" + Math.floor(Math.random() * 1000),
     name,
     email: email || "",
-    avatarUrl: avatarUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuDThjmqH6fm5-FAys1g4tycG4MH6zoNkwX0W-tfGgJfbGAVFyybt5P6IGpMgXoZlhEgM8DNGFzTI89pPT3xkphC8gW9SAtvijZGLG2MLVAGeb63BFPDzHUXFehWxOdoNVQev6n-4xHO2PgM10ckZDOo9aWW-WVFHAVQz18uqPf5SOIa7C6dN98D8l2gVu6DGg4s24mfkPKujevAfER9KUCccVe80vNPQiVVnx38k_MrubwRwnBzP2t_umhnUqQBM8PJES09Xj79pac",
+    avatarUrl: avatarUrl || "/default_avatar.webp",
     isContact: true
   });
   await newContact.save();
@@ -637,6 +673,8 @@ app.get("/api/stats", async (req, res) => {
 
 
 async function start() {
+  if (process.env.VERCEL) return; // Do not start the listener in Vercel Serverless environment
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
@@ -651,3 +689,5 @@ async function start() {
 }
 
 start();
+
+export default app;

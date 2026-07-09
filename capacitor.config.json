@@ -1,0 +1,13 @@
+{
+  "appId": "com.splitmate.app",
+  "appName": "SplitMate",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 500
+    }
+  }
+}

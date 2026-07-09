@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Skeleton, SkeletonCard, SkeletonList } from "./Skeleton";
 
 import {
   ArrowLeft,
@@ -52,13 +53,44 @@ export default function GroupDetails({
   const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  // Fetch group data
   const fetchGroupDetails = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/groups/${groupId}`);
-      if (res.ok) {
+      const fetchPromise = fetch(`/api/groups/${groupId}`);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 1500)
+      );
+
+      let res;
+      try {
+        res = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (e) {
+        if (e.message === "Timeout") {
+          // Fallback to cache
+          let hasCache = false;
+          try {
+            const cachedGroup = localStorage.getItem(`sm_group_${groupId}`);
+            if (cachedGroup) {
+              setData(JSON.parse(cachedGroup));
+              hasCache = true;
+            }
+          } catch (err) {}
+          
+          if (hasCache) {
+            setLoading(false);
+          }
+          
+          // Wait for background fetch
+          res = await fetchPromise;
+        } else {
+          throw e;
+        }
+      }
+
+      if (res && res.ok) {
         const json = await res.json();
         setData(json);
+        localStorage.setItem(`sm_group_${groupId}`, JSON.stringify(json));
       }
     } catch (err) {
       console.error("Error loading group details", err);
@@ -73,10 +105,11 @@ export default function GroupDetails({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>);
-
+      <div className="space-y-6 mt-4">
+        <SkeletonCard className="h-40 w-full" />
+        <SkeletonList count={4} />
+      </div>
+    );
   }
 
   if (!data) {

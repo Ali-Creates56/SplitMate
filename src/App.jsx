@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { SplashScreen } from '@capacitor/splash-screen';
 
 import Onboarding from "./components/Onboarding";
 import Login from "./components/Login";
@@ -27,7 +28,8 @@ import {
 "lucide-react";
 
 export default function App() {
-  const [onboarded, setOnboarded] = useState(false);
+  const [onboarded, setOnboarded] = useState(() => localStorage.getItem("splitmate_onboarded") === "true");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [predefinedUsers, setPredefinedUsers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -42,6 +44,7 @@ export default function App() {
   const [activities, setActivities] = useState([]);
   const [currency, setCurrency] = useState("Rs.");
   const [darkMode, setDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Tab navigation
   const [activeTab, setActiveTab] = useState("home");
@@ -97,19 +100,70 @@ export default function App() {
   }, [currentUser, activeTab]);
 
   const refreshData = async () => {
+    setIsLoading(true);
+
     try {
-      // Parallel fetches for speed and reactivity
-      const [resGroups, resStats, resAct] = await Promise.all([
-      fetch("/api/groups"),
-      fetch("/api/stats"),
-      fetch("/api/notifications")]
+      const fetchPromise = Promise.all([
+        fetch("/api/groups"),
+        fetch("/api/stats"),
+        fetch("/api/notifications")
+      ]);
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 1500)
       );
 
-      if (resGroups.ok) setGroups(await resGroups.json());
-      if (resStats.ok) setStats(await resStats.json());
-      if (resAct.ok) setActivities(await resAct.json());
+      let results;
+      try {
+        results = await Promise.race([fetchPromise, timeoutPromise]);
+      } catch (e) {
+        if (e.message === "Timeout") {
+          // Snap to cache if server is too slow
+          let hasCache = false;
+          try {
+            const cachedGroups = localStorage.getItem("sm_groups");
+            const cachedStats = localStorage.getItem("sm_stats");
+            const cachedAct = localStorage.getItem("sm_act");
+            if (cachedGroups) {
+              setGroups(JSON.parse(cachedGroups));
+              hasCache = true;
+            }
+            if (cachedStats) setStats(JSON.parse(cachedStats));
+            if (cachedAct) setActivities(JSON.parse(cachedAct));
+          } catch (err) {}
+          
+          if (hasCache) {
+            setIsLoading(false);
+          }
+
+          // Now wait for the fetch to finish in the background
+          results = await fetchPromise;
+        } else {
+          throw e;
+        }
+      }
+
+      const [resGroups, resStats, resAct] = results;
+
+      if (resGroups && resGroups.ok) {
+        const data = await resGroups.json();
+        setGroups(data);
+        localStorage.setItem("sm_groups", JSON.stringify(data));
+      }
+      if (resStats && resStats.ok) {
+        const data = await resStats.json();
+        setStats(data);
+        localStorage.setItem("sm_stats", JSON.stringify(data));
+      }
+      if (resAct && resAct.ok) {
+        const data = await resAct.json();
+        setActivities(data);
+        localStorage.setItem("sm_act", JSON.stringify(data));
+      }
     } catch (err) {
       console.error("Failed to refresh dashboard data schema", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -125,23 +179,55 @@ export default function App() {
   };
 
   const fetchCurrentSession = async () => {
+    let cachedUserStr = null;
+    let cachedUser = null;
     try {
-      const res = await fetch("/api/currentUser");
-      if (res.ok) {
+      cachedUserStr = localStorage.getItem("sm_currentUser");
+      if (cachedUserStr) {
+        cachedUser = JSON.parse(cachedUserStr);
+      }
+    } catch(err) {}
+
+    try {
+      const url = cachedUser ? `/api/currentUser?id=${cachedUser.id}` : "/api/currentUser";
+      const fetchPromise = fetch(url);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout")), 1000)
+      );
+
+      const res = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      if (res && res.ok) {
         const u = await res.json();
         if (u) {
+          localStorage.setItem("sm_currentUser", JSON.stringify(u));
           setCurrentUser(u);
           setProfileName(u.name);
           setProfileEmail(u.email);
           setProfileAvatar(u.avatarUrl);
         }
+      } else if (res && res.status === 401) {
+        localStorage.removeItem("sm_currentUser");
+        setCurrentUser(null);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Network or Auth Error:", err);
+      // Timeout or offline fallback
+      if (cachedUser) {
+        setCurrentUser(cachedUser);
+        setProfileName(cachedUser.name);
+        setProfileEmail(cachedUser.email);
+        setProfileAvatar(cachedUser.avatarUrl);
+      } else {
+        setCurrentUser(null);
+      }
+    } finally {
+      setIsCheckingAuth(false);
     }
   };
 
   const handleLogin = (user) => {
+    localStorage.setItem("sm_currentUser", JSON.stringify(user));
     setCurrentUser(user);
     setProfileName(user.name);
     setProfileEmail(user.email);
@@ -267,6 +353,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("sm_currentUser");
     setCurrentUser(null);
   };
 
@@ -302,13 +389,38 @@ export default function App() {
     }
   };
 
+  const handleClearCache = async () => {
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+      }
+      sessionStorage.clear();
+      alert("App cache cleared successfully! Storage space freed.");
+    } catch (err) {
+      console.error("Cache clear failed", err);
+      alert("Failed to clear cache completely.");
+    }
+  };
+
   // Render Logic Flow
   if (!onboarded) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans p-4 transition-colors duration-300">
-        <Onboarding onComplete={() => setOnboarded(true)} />
+        <Onboarding onComplete={() => {
+          localStorage.setItem("splitmate_onboarded", "true");
+          setOnboarded(true);
+        }} />
       </div>);
 
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans p-4 transition-colors duration-300">
+        <Login isCheckingAuth={true} onLogin={() => {}} onRegister={() => {}} />
+      </div>
+    );
   }
 
   if (!currentUser) {
@@ -348,7 +460,7 @@ export default function App() {
       </header>
 
       {/* Main Core Body */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 pt-6 pb-24">
         {selectedGroup ?
         <GroupDetails
           groupId={selectedGroup.id}
@@ -368,6 +480,7 @@ export default function App() {
             stats={stats}
             currentUser={currentUser}
             activities={activities}
+            isLoading={isLoading}
             onCreateGroupClick={() => setShowCreateGroup(true)}
             onSettleUpClick={() => {
               // Direct to groups tab to pick group first or click settle on group
@@ -383,6 +496,7 @@ export default function App() {
             {activeTab === "groups" &&
           <GroupsList
             groups={groups}
+            isLoading={isLoading}
             onGroupSelect={(g) => setSelectedGroup(g)}
             onCreateGroupClick={() => setShowCreateGroup(true)}
             currency={currency} />
@@ -427,7 +541,7 @@ export default function App() {
                     {predefinedUsers.filter(u => u.id !== "you").map(u => (
                       <div key={u.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center gap-3">
-                          <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
+                          <img src={u.avatarUrl} alt={u.name} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
                           <div>
                             <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">{u.name}</p>
                             {u.email && <p className="text-[10px] text-slate-400">{u.email}</p>}
@@ -466,7 +580,7 @@ export default function App() {
                   <div className="flex flex-col items-center gap-4 py-2 border-b border-slate-150/40 dark:border-slate-800/30">
                     <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500 flex items-center justify-center shrink-0 bg-slate-100">
                       <img
-                    src={profileAvatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuDThjmqH6fm5-FAys1g4tycG4MH6zoNkwX0W-tfGgJfbGAVFyybt5P6IGpMgXoZlhEgM8DNGFzTI89pPT3xkphC8gW9SAtvijZGLG2MLVAGeb63BFPDzHUXFehWxOdoNVQev6n-4xHO2PgM10ckZDOo9aWW-WVFHAVQz18uqPf5SOIa7C6dN98D8l2gVu6DGg4s24mfkPKujevAfER9KUCccVe80vNPQiVVnx38k_MrubwRwnBzP2t_umhnUqQBM8PJES09Xj79pac"}
+                    src={profileAvatar || "/default_avatar.webp"}
                     alt="Avatar"
                     className="w-full h-full object-cover font-sans"
                     referrerPolicy="no-referrer" />
@@ -540,6 +654,12 @@ export default function App() {
                 
                     Delete Account
                   </button>
+                  <button
+                type="button"
+                onClick={handleClearCache}
+                className="w-full py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs tracking-wide transition-colors">
+                    Clear App Cache Data
+                  </button>
                 </form>
               </div>
           }
@@ -548,7 +668,7 @@ export default function App() {
       </main>
 
       {/* Navigation Rails Tab Bar For Visual Parity */}
-      <footer className="sticky bottom-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200/50 dark:border-slate-800/50">
+      <footer className="fixed bottom-0 left-0 w-full z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200/50 dark:border-slate-800/50 shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.1)]">
         <div className="max-w-4xl mx-auto grid grid-cols-4 py-3 font-display">
           <button
             onClick={() => {
