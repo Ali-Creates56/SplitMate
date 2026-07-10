@@ -41,7 +41,7 @@ const sendProfessionalEmail = async (to, subject, otp, message) => {
   const htmlTemplate = `
 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px; border-radius: 16px;">
   <div style="text-align: center; margin-bottom: 30px;">
-    <img src="cid:splitmate_logo" alt="SplitMate Logo" style="width: 80px; height: 80px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);" />
+    <img src="https://raw.githubusercontent.com/Ali-Creates56/SplitMate/main/public/favicon.png" alt="SplitMate Logo" style="width: 80px; height: 80px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);" />
     <h1 style="color: #0f172a; margin-top: 16px; font-size: 24px; font-weight: 700;">SplitMate</h1>
   </div>
   
@@ -67,14 +67,7 @@ const sendProfessionalEmail = async (to, subject, otp, message) => {
     replyTo: "noreply@splitmate.com",
     to,
     subject,
-    html: htmlTemplate,
-    attachments: [{
-      filename: 'favicon.png',
-      path: path.join(process.cwd(), 'public', 'favicon.png'),
-      cid: 'splitmate_logo',
-      contentType: 'image/png',
-      contentDisposition: 'inline'
-    }]
+    html: htmlTemplate
   });
 };
 
@@ -473,12 +466,7 @@ app.delete("/api/groups/:id", async (req, res) => {
     return res.status(403).json({ error: "Only the group author can delete this group!" });
   }
 
-  // VALIDATION: Check if payments are balanced
-  const balances = await calculateGroupBalances(id, group, null, null);
-  const unbalanced = Object.values(balances).some(bal => Math.abs(bal) > 0.01);
-  if (unbalanced) {
-    return res.status(400).json({ error: "Cannot delete group. All member balances must be zero (fully settled) first." });
-  }
+  // Removed balance validation: Author can force delete group regardless of balances.
 
   await Group.deleteOne({ id });
   await Expense.deleteMany({ groupId: id });
