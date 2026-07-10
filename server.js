@@ -151,10 +151,48 @@ app.get("/api/currentUser", async (req, res) => {
 });
 
 app.post("/api/profile/update", async (req, res) => {
-  const { id, name, email, avatarUrl } = req.body;
-  const user = await User.findOneAndUpdate({ id }, { name, email, avatarUrl }, { new: true });
+  const { id, name, avatarUrl } = req.body;
+  // NOTE: email updates are handled separately via OTP verification to prevent unauthorized changes
+  const user = await User.findOneAndUpdate({ id }, { name, avatarUrl }, { new: true });
   if (user) return res.json({ success: true, user });
   res.status(404).json({ error: "Current user not found" });
+});
+
+app.post("/api/profile/request-email-change", async (req, res) => {
+  const { id, newEmail } = req.body;
+  if (!newEmail) return res.status(400).json({ error: "New email is required" });
+  
+  const existing = await User.findOne({ email: newEmail.toLowerCase() });
+  if (existing) return res.status(400).json({ error: "Email already in use" });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otps[newEmail.toLowerCase()] = { otp, id }; 
+
+  if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+    await sendProfessionalEmail(
+      newEmail, 
+      "Verify your new Email Address", 
+      otp, 
+      "You requested to change your SplitMate email address. Please use the following One-Time Password to verify it."
+    );
+  } else {
+    console.log(`[SIMULATED EMAIL] To: ${newEmail} | OTP: ${otp}`);
+  }
+  res.json({ success: true, simulated: !process.env.SMTP_EMAIL });
+});
+
+app.post("/api/profile/verify-email-change", async (req, res) => {
+  const { newEmail, otp } = req.body;
+  const target = newEmail.toLowerCase();
+  const session = otps[target];
+  
+  if (!session || session.otp !== otp) return res.status(400).json({ error: "Invalid or expired OTP" });
+  
+  const user = await User.findOneAndUpdate({ id: session.id }, { email: target }, { new: true });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  delete otps[target];
+  res.json({ success: true, user });
 });
 
 app.post("/api/profile/delete-request", async (req, res) => {

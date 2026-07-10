@@ -66,6 +66,8 @@ export default function App() {
   const [profileEmail, setProfileEmail] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
   const [profileSuccess, setProfileSuccess] = useState(false);
+  const [showEmailOtp, setShowEmailOtp] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
 
   // Friend Management Form
   const [newFriendName, setNewFriendName] = useState("");
@@ -295,6 +297,27 @@ export default function App() {
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setProfileSuccess(false);
+    
+    // Check if email changed
+    if (profileEmail.trim().toLowerCase() !== currentUser.email.trim().toLowerCase()) {
+      try {
+        const res = await fetch("/api/profile/request-email-change", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: currentUser.id, newEmail: profileEmail })
+        });
+        if (res.ok) {
+          setShowEmailOtp(true);
+        } else {
+          const data = await res.json();
+          alert(data.error || "Failed to request email change");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/profile/update", {
         method: "POST",
@@ -302,7 +325,6 @@ export default function App() {
         body: JSON.stringify({
           id: currentUser.id,
           name: profileName,
-          email: profileEmail,
           avatarUrl: profileAvatar
         })
       });
@@ -312,6 +334,38 @@ export default function App() {
         setProfileSuccess(true);
         fetchPredefinedUsers();
         setTimeout(() => setProfileSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleVerifyEmailChange = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/profile/verify-email-change", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newEmail: profileEmail, otp: emailOtp })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUser(data.user);
+        setProfileSuccess(true);
+        setShowEmailOtp(false);
+        setEmailOtp("");
+        fetchPredefinedUsers();
+        setTimeout(() => setProfileSuccess(false), 3000);
+        
+        // Also update name/avatar if they changed
+        await fetch("/api/profile/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: currentUser.id, name: profileName, avatarUrl: profileAvatar })
+        });
+      } else {
+        const data = await res.json();
+        alert(data.error || "Invalid OTP");
       }
     } catch (err) {
       console.error(err);
@@ -665,12 +719,32 @@ export default function App() {
                 
                   </div>
 
-                  <button
-                type="submit"
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs tracking-wide transition-colors shadow-md">
-                
-                    Save Changes
-                  </button>
+                  {!showEmailOtp ? (
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs tracking-wide transition-colors shadow-md">
+                      Save Changes
+                    </button>
+                  ) : (
+                    <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 text-center">
+                        Check your <b>email inbox</b> for the OTP to verify your new email address!
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-500 uppercase text-center block">Enter 6-Digit OTP</label>
+                        <input type="text" value={emailOtp} onChange={(e) => setEmailOtp(e.target.value)} maxLength={6} required className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-xl text-center tracking-[0.5em] text-lg text-slate-800 dark:text-white focus:border-emerald-500 focus:outline-none" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleVerifyEmailChange}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs tracking-wide transition-colors shadow-md">
+                        Verify OTP & Save
+                      </button>
+                      <button type="button" onClick={() => { setShowEmailOtp(false); setEmailOtp(""); setProfileEmail(currentUser.email); }} className="w-full text-xs text-slate-500 hover:underline">
+                        Cancel Email Change
+                      </button>
+                    </div>
+                  )}
                   <button
                 type="button"
                 onClick={handleDeleteAccount}

@@ -238,9 +238,11 @@ export default function Login({ onLogin, onRegister, isCheckingAuth }) {
           </div>
         )}
         
-        {simulated && (
-          <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 text-center">
-            Check your <b>server terminal</b> to see the printed OTP!
+        {step === "otp" && (
+          <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 text-center">
+            {simulated 
+              ? <span>Check your <b>server terminal</b> to see the printed OTP! (SMTP missing)</span>
+              : <span>Check your <b>email inbox</b> (and spam folder) for the OTP!</span>}
           </div>
         )}
 
