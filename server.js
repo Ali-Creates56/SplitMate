@@ -71,7 +71,9 @@ const sendProfessionalEmail = async (to, subject, otp, message) => {
     attachments: [{
       filename: 'favicon.png',
       path: path.join(process.cwd(), 'public', 'favicon.png'),
-      cid: 'splitmate_logo'
+      cid: 'splitmate_logo',
+      contentType: 'image/png',
+      contentDisposition: 'inline'
     }]
   });
 };
